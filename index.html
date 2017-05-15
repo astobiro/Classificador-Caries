@@ -1,1 +1,194 @@
-"Hello World" 
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Classificador de lesões dentárias</title>
+	<meta charset="utf-8">
+	<style type="text/css">
+		.modal{
+			display: none;
+			position: fixed;
+			z-index: 1;
+			padding-top: 100px;
+			left: 0;
+			top: 0;
+			width: 100%;
+			height: 150%;
+			overflow: auto;
+			background-color: rgb(0,0,0);
+			background-color: rgba(0,0,0,0.4);
+		}
+		.modal-content{
+			background-color: #fefefe;
+			margin: auto;
+			padding: 20px;
+			border: 1px solid #888;
+			width: 80%;
+		}
+		.close{
+			color: #aaaaaa;
+			float: right;
+			font-size: 28px;
+			font-weight: bold;
+		}
+		.close:hover,
+		.close:focus{
+			color: #000;
+			text-decoration: none;
+			cursor: pointer;
+		}
+		#myCanvas:draw{
+			cursor : help;
+		}
+		#myCanvas:active{
+			cursor : crosshair;
+		}
+	</style>
+</head>
+
+<body bgcolor="#888888">
+	<div id ="megacontainer" style = "margin: 0px auto;margin-left: 0px; width: 1100px; border: 0px solid black; height: 710px;">
+		<div id ="someother" style="width: 220px; border: 1px solid black; height: 710px;float: left;">
+			Dados das marcações:<br>
+			<div id="dadosdentes">
+			</div>
+		</div>
+		<div id="container" style="margin-left: 1px;width: 875px; border: 1px solid black; height: 710px;float: right;">
+			<div id="barra_lateral" style="border: 1px solid black; width: 875px; height: 130px; float: left;" >
+				Imagem:<br>
+				<input type="file" style="display: none;" id="fileinput" name="file[]" multiple/>
+				<t id="imgname" style="height:30px; margin-top: 10px; margin-left: 10px;margin-bottom: 10px;"></t>
+				<input type="button" style="height: 30px;margin-top: 10px;margin-left: 10px;margin-bottom: 10px;" id="imagem" value="Abrir imagem" onclick="handleClick()"/>
+				<!--<input type="button" style="width: 100px; height:30px; margin-left: 10px;margin-bottom: 10px;" id="open" value="Abrir" onclick="loadfile()" disabled="true" />-->
+				<input type="button" style="width: 100px; height:30px; margin-left: 10px;margin-bottom: 10px;" id="saveall" value="Salvar XML" onclick="saveAll()"/>
+				<input type="button" style="width: 100px; height:30px; margin-left: 10px;margin-bottom: 10px;" id="saveall" value="Salvar Imagem" onclick="saveToJPG()"/>
+				<div>
+				Carregar Imagem Salva (XML):<br>
+				<input type="file" style="display: none;" id="readinput" name="file[]" multiple/>
+				<t id="xmlname" style="height:30px; margin-top: 10px; margin-left: 10px;margin-bottom: 10px;"></t>
+				<input type="button" style="height: 30px;margin-top: 10px;margin-left: 10px;margin-bottom: 10px;" id="xmlfile" value="Carregar XML" onclick="handleLoadClick()"/>
+				<!--<input type="button" style="height: 30px;margin-top: 10px;margin-left: 10px;margin-bottom: 10px;" id="salva" value="Gerar patch" onclick="patchSaver()"/>	
+				<input type="button" style="height: 30px;margin-top: 10px;margin-left: 10px;margin-bottom: 10px;" id="salva" value="Salvar Zip" onclick="saveZip()"/>-->
+				<!--<input type="button" style="width: 100px; height:30px; margin-left: 10px;margin-bottom: 10px;" id="read" value="Ler imagem" onclick="readTextFile()"/>-->
+				</div>
+				<!--Tranformações<br>
+				<input id="scale" style="width: 100px; height:30px; margin-left: 10px;margin-bottom: 10px;" type="button" value="Escalar" onclick="scaleFlag();"/><br>
+				<input id="rotate" style="width: 100px; height:30px; margin-left: 10px;margin-bottom: 10px;" type="button" value="Rotacionar" onclick="rotationFlag();"/><br>
+				<input id="espelhar" style="width: 100px; height:30px; margin-left: 10px;margin-bottom: 10px;" type="button" value="Espelhar" onclick="mirrorFlag();"/><br>-->
+			</div>
+			<div id="barra_superior" style="border: 1px solid black; width: 875px; height: 55px; float: left;">
+				Ferramentas:<br>
+				<div style="float:left;">
+				<input id="livre" style="width: 100px; height: 30px; margin-top: 0px; margin-left: 20px;margin-bottom: 10px;" type="button" value="Livre" onclick="generateNewFree();"/><br>
+				</div>
+				<!--<input id="ponto" style="width: 100px; height:30px; margin-left: 10px;margin-bottom: 10px;" type="button" value="Ponto" onclick="generateNewPoint();"/><br>
+				<input id="linha" style="width: 100px; height:30px; margin-left: 10px;margin-bottom: 10px;" type="button" value="Linha" onclick="generateNewLine();"/><br>
+				<input id="linha" style="width: 100px; height:30px; margin-left: 10px;margin-bottom: 10px;" type="button" value="Arco" onclick="generateNewArc();"/><br>
+				<input id="bezier" style="width: 100px; height:30px; margin-left: 10px;margin-bottom: 10px;" type="button" value="Bezier" onclick="generateNewBezier();"/><br>-->
+				<div style="float:left;">
+				<input id="area" style="width: 100px; height:30px; margin-left: 10px;margin-bottom: 10px;" type="button" value="Área" onclick="generateNewArea();"/><br>
+				</div>
+				<input id="colorwheel" style="width: 100px; height:30px; margin-top:-2px; margin-left: 7.5px; margin-bottom: 10px;" type="color" value="#FF0000" name="chooseColor" ><br>
+
+			</div>
+			<div id="canvas_container" style="left: 10px; border: 1px solid black; width: 850px; height: 500px; float: left; margin-left: 12px; margin-top: 10px;">	
+				<canvas id="myCanvas" width="850" height="500"> </canvas>
+			</div>
+		</div>
+	</div>
+	<center>
+	<br>
+	<form>
+		<!--<input type="file" id="fileinput" name="file[]" multiple/>
+		<input type="button" id="open" value="Abrir" onclick="loadfile()"/>-->
+	</form>
+	
+	<form>
+		<!--<a href id="save">Save</a>-->
+		<a href id="about">About</a>
+		<a href id="clear">Limpar tela</a>
+	</form>
+	</center>
+
+	<div id="modal" class="modal">
+		<div class="modal-content">
+		<span class="close">×</span>
+		<div><b><center>Classifique a lesão marcada</center></b></div>
+		<center>
+		<text><b>Número do dente: </b></text>
+		<select id="numdente" style="margin-top:20px;">
+			<option value="d1">18</option>
+			<option value="d2">17</option>
+			<option value="d3">16</option>
+			<option value="d4">15</option>
+			<option value="d5">14</option>
+			<option value="d6">13</option>
+			<option value="d7">12</option>
+			<option value="d8">11</option>
+			<option value="d9">21</option>
+			<option value="d10">22</option>
+			<option value="d11">23</option>
+			<option value="d12">24</option>
+			<option value="d13">25</option>
+			<option value="d14">26</option>
+			<option value="d15">27</option>
+			<option value="d16">28</option>
+			<option value="d17">48</option>
+			<option value="d18">47</option>
+			<option value="d19">46</option>
+			<option value="d20">45</option>
+			<option value="d21">44</option>
+			<option value="d22">43</option>
+			<option value="d23">42</option>
+			<option value="d24">41</option>
+			<option value="d25">31</option>
+			<option value="d26">32</option>
+			<option value="d27">33</option>
+			<option value="d28">34</option>
+			<option value="d29">35</option>
+			<option value="d30">36</option>
+			<option value="d31">37</option>
+			<option value="d32">38</option>
+
+		</select>	
+			</center>
+				<div>
+				<center>
+					<text><b>Tipo de lesão: </b></text>
+					<select id="tlesao" style="margin-top: 10px;">
+						<option value="1">Lesâo cariosa em esmalte</option>
+						<option value="2">Lesâo cariosa em dentina</option>
+						<option value="3">Lesão cariosa pulpar</option>
+						<option value="4">Lesão cariosa recidivante</option>
+					</select>
+				</center>
+				</div>
+				<div><center>
+					<textarea id="txt" rows="3" columns="1000" style="margin-top: 10px">
+					</textarea>
+				</div></center>
+				<div>
+				<center>
+				<input type="button" id="save" value="Salvar" style="margin-top: 10px;" onclick="saveToXML()"/>
+				</center>
+			</div>
+		</div>
+	</div>
+
+	<script>
+	document.getElementById('about').onclick = function(){
+		alert("Classificador de Lesões dentárias\nInstruções:\nPara abrir imagem clicar em Abrir imagem, desenhar onde a lesão se encontra, marcar qual dente e qual o tipo de lesão, podendo adicionar observações e clicar em Salvar. Quando tiver terminado de marcar todas as lesões, clicar em Salvar XML\n\nPara abrir imagens já salvar clicar em Carregar XML e escolher a imagem.xml para abrir (Podendo assim editar marcações)\n\n(Os dados serão salvos como nome_da_imagem.xml, Ex: imagem.jpg é salva como imagem.xml).\n\nPara salvar a imagem com as marcações basta clicar em Salvar Imagem (será salva assim como imagam_edit.jpg)\n\nQualquer erro, clique com o botão direito e em Inspecionar, clique em console copie tudo e manda para 'astobiro@gmail.com' com assunto: Erro classificador");
+	}
+	</script>
+	<script type="text/javascript" src="main.js"></script>
+	<script type="text/javascript" src="mouseFunction.js"></script>
+	<script type="text/javascript" src="point.js"></script>
+	<script type="text/javascript" src="line.js"></script>
+	<!--<script type="text/javascript" src="arc.js"></script>
+	<script type="text/javascript" src="bezier.js"></script>-->
+	<script type="text/javascript" src="area.js"></script>
+	<script type="text/javascript" src="utils.js"></script>
+	<script type="text/javascript" src="jszip.js"></script>
+	<script type="text/javascript" src="filehand.js"></script>
+	<script type="text/javascript" src="FileSaver.js"></script>
+</body>
+</html>
